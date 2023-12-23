@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Application</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <style>
+        .server-message {
+            color: blue; /* Customize the color for server messages */
+            font-weight: bold;
+        }
+
+        .user-message {
+            color: green; /* Customize the color for user messages */
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div id="message-container"></div>
+    <div id="input-container">
+        <input type="text" id="name-input" placeholder="Your Name">
+        <input type="text" id="message-input" placeholder="Type a message to send">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+    <script>
+       function updateMessages(messages) {
+    console.log('Received Messages:', messages);  // Log received messages for debugging
+    const container = $("#message-container");
+    container.empty();
+
+    messages.forEach(msg => {
+        console.log('Processing Message:', msg);  // Log each message for debugging
+
+        const messageDiv = $("<div>").text(msg.name + msg.message);
+
+        // Apply different styles for messages from the server and users
+        if (msg.name.includes('Server')) {
+            messageDiv.addClass('server-message');
+        } else if (msg.name.includes('🌟')) {
+            messageDiv.addClass('user-message');
+        }
+
+        container.append(messageDiv);
+    });
+}
+
+
+
+        function sendMessage() {
+    const name = $("#name-input").val();
+    const message = $("#message-input").val();
+
+    // Send the message to the server
+    $.post("/send_message", { name, message }, function () {
+        // Clear the input fields
+        $("#name-input").val("");
+        $("#message-input").val("");
+
+        // Fetch and update messages immediately after sending
+        $.get("/fetch_updates", function (data) {
+            updateMessages(data);
+        });
+    });
+}
+
+
+
+        // Function to update messages every second
+        function autoUpdateMessages() {
+            $.get("/fetch_updates", function (data) {
+                updateMessages(data);
+            });
+        }
+
+        // Start auto-updating messages
+        setInterval(autoUpdateMessages, 1000);
+
+        // Initial update
+        autoUpdateMessages();
+    </script>
+</body>
+</html>
